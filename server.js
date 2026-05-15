@@ -2,6 +2,7 @@ const express = require("express")
 const http = require("http")
 const { Server } = require("socket.io")
 const crypto = require("crypto")
+const fs = require("fs")
 
 const app = express()
 
@@ -76,7 +77,7 @@ sala.estado = "jugando"
 
 }else{
 
-sala.estado = "esperando"
+sala.estado = "esperando rival"
 
 }
 
@@ -238,6 +239,18 @@ if(
 data.mensaje.length > 200
 ) return
 
+const log = {
+fecha:new Date(),
+sala:data.room,
+nombre:data.nombre,
+mensaje:data.mensaje
+}
+
+fs.appendFileSync(
+"chatlogs.txt",
+JSON.stringify(log) + "\n"
+)
+
 io.to(data.room).emit(
 "chat",
 {
@@ -267,7 +280,7 @@ continue
 
 }
 
-sala.estado = "esperando"
+sala.estado = "esperando rival"
 
 io.to(room).emit(
 "statusUpdate",
