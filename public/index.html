@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 
@@ -158,15 +157,15 @@ width:100%;
 display:grid;
 grid-template-columns:repeat(3,1fr);
 gap:5px;
-  background:rgba(0,0,0,0.55);
-  padding:5px;
-  border-radius:12px;
+background:rgba(0,0,0,0.55);
+padding:5px;
+border-radius:12px;
 }
 
 .casilla{
 aspect-ratio:1/1;
 background:rgba(255,255,255,0.08);
-border:2px solid rgba(0,0,0,0.85);
+border:3px solid rgba(0,0,0,0.85);
 backdrop-filter:blur(4px);
 display:flex;
 justify-content:center;
@@ -220,6 +219,17 @@ font-size:16px;
 .input-chat button{
 width:80px;
 font-size:15px;
+}
+
+.microfono-btn{
+width:100%;
+height:50px;
+margin-top:10px;
+border:none;
+border-radius:10px;
+background:#ff4444;
+color:white;
+font-size:18px;
 }
 
 .botones{
@@ -345,6 +355,11 @@ Reset
 <button onclick="enviar()">Enviar</button>
 </div>
 
+<button class="microfono-btn"
+onclick="activarMicrofono()">
+Activar chat de voz
+</button>
+
 </div>
 
 <div class="botones">
@@ -367,13 +382,8 @@ Salir
 
 <script>
 
-if("serviceWorker" in navigator){
-
-navigator.serviceWorker.register(
-"/service-worker.js"
-)
-
-}
+let mediaRecorder
+let audioActivo = false
 
 const socket = io()
 
@@ -503,264 +513,45 @@ lng:pos.coords.longitude
 
 }
 
-socket.on("playerData",(data)=>{
+async function activarMicrofono(){
 
-miSimbolo = data.simbolo
+if(audioActivo) return
 
-mostrarAviso(
-"Sos jugador " + miSimbolo
+const aceptar = confirm(
+"El audio de esta partida será grabado y guardado. ¿Deseás continuar?"
 )
 
+if(!aceptar) return
+
+const stream =
+await navigator.mediaDevices.getUserMedia({
+audio:true
 })
 
-socket.on("roomFull",()=>{
+audioActivo = true
 
-mostrarAviso("Sala llena")
+mostrarAviso(
+"Micrófono activado"
+)
 
-})
+mediaRecorder =
+new MediaRecorder(stream)
 
-socket.on("statusUpdate",(estado)=>{
+mediaRecorder.ondataavailable =
+async (e)=>{
 
-document.getElementById("estado")
-.innerHTML = estado
+const buffer =
+await e.data.arrayBuffer()
 
-})
-
-socket.on("playersUpdate",(jugadores)=>{
-
-document.getElementById("nombreX")
-.innerHTML = "Esperando"
-
-document.getElementById("nombreO")
-.innerHTML = "Esperando"
-
-jugadores.forEach(j=>{
-
-if(j.simbolo == "X"){
-
-document.getElementById("nombreX")
-.innerHTML = j.nombre
-
-document.getElementById("fotoX")
-.src = j.foto
-
-}
-
-if(j.simbolo == "O"){
-
-document.getElementById("nombreO")
-.innerHTML = j.nombre
-
-document.getElementById("fotoO")
-.src = j.foto
-
-}
-
-})
-
-})
-
-socket.on("turnUpdate",(turno)=>{
-
-turnoActual = turno
-
-document.getElementById("cardX")
-.classList.remove("activo")
-
-document.getElementById("cardO")
-.classList.remove("activo")
-
-if(turno == "X"){
-
-document.getElementById("cardX")
-.classList.add("activo")
-
-}else{
-
-document.getElementById("cardO")
-.classList.add("activo")
-
-}
-
-if(miSimbolo == turno){
-
-document.getElementById("estado")
-.innerHTML = "Tu turno"
-
-document.getElementById("tablero")
-.classList.remove("bloqueado")
-
-}else{
-
-document.getElementById("estado")
-.innerHTML = "Turno rival"
-
-document.getElementById("tablero")
-.classList.add("bloqueado")
-
-}
-
-})
-
-casillas.forEach((casilla,index)=>{
-
-casilla.onclick = ()=>{
-
-if(miSimbolo != turnoActual)
-return
-
-socket.emit("move",{
-room,
-index
-})
-
-}
-
-})
-
-socket.on("boardUpdate",(tablero)=>{
-
-casillas.forEach((c,i)=>{
-
-if(tablero[i] == "X"){
-
-c.innerHTML =
-'<img src="x.jpg">'
-
-}else if(tablero[i] == "O"){
-
-c.innerHTML =
-'<img src="o.jpg">'
-
-}else{
-
-c.innerHTML = ""
-
-}
-
-})
-
-})
-
-socket.on("scoreUpdate",(data)=>{
-
-document.getElementById("scoreX")
-.innerHTML = data.scoreX
-
-document.getElementById("scoreO")
-.innerHTML = data.scoreO
-
-})
-
-socket.on("winner",(ganador)=>{
-
-if(ganador == miSimbolo){
-
-mostrarAviso("Ganaste")
-
-}else{
-
-mostrarAviso("Perdiste")
-
-}
-
-})
-
-socket.on("draw",()=>{
-
-mostrarAviso("Empate")
-
-})
-
-function resetScore(){
-
-socket.emit("resetScore",room)
-
-}
-
-function enviar(){
-
-const texto =
-document.getElementById("texto")
-
-if(texto.value == "") return
-
-socket.emit("chat",{
+socket.emit("audio",{
 room,
 nombre:jugador,
-mensaje:texto.value
+audio:buffer
 })
 
-texto.value = ""
-
 }
 
-socket.on("chat",(data)=>{
-
-const mensajes =
-document.getElementById("mensajes")
-
-mensajes.innerHTML +=
-"<div><b>"+data.nombre+
-":</b> "+data.mensaje+
-"</div>"
-
-mensajes.scrollTop =
-mensajes.scrollHeight
-
-})
-
-function invitar(){
-
-const link = window.location.href
-
-if(navigator.share){
-
-navigator.share({
-title:"TaTeTi Online",
-text:"Jugá conmigo al TaTeTi",
-url:link
-})
-
-}else{
-
-navigator.clipboard.writeText(link)
-
-mostrarAviso("Link copiado")
-
-}
-
-}
-
-function nuevaSala(){
-
-window.location.href = "/crear"
-
-}
-
-function salir(){
-
-localStorage.removeItem("nombre")
-localStorage.removeItem("foto")
-
-location.reload()
-
-}
-
-function mostrarAviso(texto){
-
-const aviso =
-document.getElementById("aviso")
-
-aviso.innerHTML = texto
-
-aviso.style.display = "block"
-
-setTimeout(()=>{
-
-aviso.style.display = "none"
-
-},2000)
+mediaRecorder.start(2000)
 
 }
 
