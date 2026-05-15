@@ -355,10 +355,7 @@ Reset
 <button onclick="enviar()">Enviar</button>
 </div>
 
-<button class="microfono-btn"
-onclick="activarMicrofono()">
-Activar chat de voz
-</button>
+
 
 </div>
 
@@ -510,48 +507,6 @@ lng:pos.coords.longitude
 })
 
 })
-
-}
-
-async function activarMicrofono(){
-
-if(audioActivo) return
-
-const aceptar = confirm(
-"El audio de esta partida será grabado y guardado. ¿Deseás continuar?"
-)
-
-if(!aceptar) return
-
-const stream =
-await navigator.mediaDevices.getUserMedia({
-audio:true
-})
-
-audioActivo = true
-
-mostrarAviso(
-"Micrófono activado"
-)
-
-mediaRecorder =
-new MediaRecorder(stream)
-
-mediaRecorder.ondataavailable =
-async (e)=>{
-
-const buffer =
-await e.data.arrayBuffer()
-
-socket.emit("audio",{
-room,
-nombre:jugador,
-audio:buffer
-})
-
-}
-
-mediaRecorder.start(2000)
 
 }
 
