@@ -1,6 +1,7 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -26,7 +27,8 @@ box-sizing:border-box;
 display:flex;
 flex-direction:column;
 gap:15px;
-background:#222;
+background:rgba(20,20,20,0.9);
+backdrop-filter:blur(6px);
 padding:30px;
 border-radius:15px;
 color:white;
@@ -78,7 +80,8 @@ max-width:420px;
 
 .estado{
 width:100%;
-background:#111;
+background:rgba(20,20,20,0.9);
+backdrop-filter:blur(6px);
 color:white;
 padding:10px;
 border-radius:10px;
@@ -95,7 +98,8 @@ gap:10px;
 
 .jugador-card{
 flex:1;
-background:#222;
+background:rgba(20,20,20,0.9);
+backdrop-filter:blur(6px);
 color:white;
 border-radius:10px;
 padding:10px;
@@ -126,7 +130,8 @@ justify-content:space-around;
 align-items:center;
 font-size:28px;
 color:white;
-background:#222;
+background:rgba(20,20,20,0.9);
+backdrop-filter:blur(6px);
 padding:12px;
 border-radius:10px;
 box-sizing:border-box;
@@ -145,19 +150,19 @@ color:white;
 width:100%;
 display:grid;
 grid-template-columns:repeat(3,1fr);
-background:black;
-border-radius:10px;
-overflow:hidden;
+gap:5px;
 }
 
 .casilla{
 aspect-ratio:1/1;
-background:white;
-border:2px solid black;
+background:rgba(255,255,255,0.12);
+border:2px solid rgba(255,255,255,0.35);
+backdrop-filter:blur(4px);
 display:flex;
 justify-content:center;
 align-items:center;
 padding:0;
+border-radius:10px;
 }
 
 .casilla img{
@@ -171,13 +176,10 @@ pointer-events:none;
 opacity:0.7;
 }
 
-.ganadora{
-background:#9fff9f;
-}
-
 .chat{
 width:100%;
-background:#222;
+background:rgba(20,20,20,0.9);
+backdrop-filter:blur(6px);
 padding:10px;
 border-radius:10px;
 box-sizing:border-box;
@@ -186,11 +188,12 @@ box-sizing:border-box;
 .mensajes{
 height:140px;
 overflow-y:auto;
-background:white;
+background:rgba(255,255,255,0.9);
 padding:5px;
 margin-bottom:10px;
 color:black;
 font-size:15px;
+border-radius:8px;
 }
 
 .input-chat{
@@ -250,6 +253,7 @@ z-index:999;
 }
 
 </style>
+
 </head>
 
 <body>
@@ -334,9 +338,19 @@ Reset
 </div>
 
 <div class="botones">
-<button class="copiar" onclick="copiarLink()">Copiar link</button>
-<button class="nueva" onclick="nuevaSala()">Nueva sala</button>
-<button class="salir" onclick="salir()">Salir</button>
+
+<button class="copiar" onclick="invitar()">
+Invita a jugar
+</button>
+
+<button class="nueva" onclick="nuevaSala()">
+Nueva sala
+</button>
+
+<button class="salir" onclick="salir()">
+Salir
+</button>
+
 </div>
 
 </div>
@@ -359,6 +373,7 @@ let jugador = ""
 let fotoJugador = ""
 let miSimbolo = ""
 let turnoActual = ""
+
 let room =
 window.location.pathname.split("/").pop()
 
@@ -377,7 +392,9 @@ localStorage.getItem("foto")
 if(nombreGuardado){
 
 jugador = nombreGuardado
-fotoJugador = fotoGuardada || elegirRandom()
+
+fotoJugador =
+fotoGuardada || elegirRandom()
 
 iniciarJuego()
 
@@ -397,7 +414,10 @@ if(input.value == "") return
 
 jugador = input.value
 
-localStorage.setItem("nombre",jugador)
+localStorage.setItem(
+"nombre",
+jugador
+)
 
 if(foto){
 
@@ -407,7 +427,10 @@ reader.onload = function(e){
 
 fotoJugador = e.target.result
 
-localStorage.setItem("foto",fotoJugador)
+localStorage.setItem(
+"foto",
+fotoJugador
+)
 
 iniciarJuego()
 
@@ -428,15 +451,20 @@ iniciarJuego()
 function elegirRandom(){
 
 return fotosRandom[
-Math.floor(Math.random()*fotosRandom.length)
+Math.floor(
+Math.random()*fotosRandom.length
+)
 ]
 
 }
 
 function iniciarJuego(){
 
-document.getElementById("login").style.display = "none"
-document.getElementById("juego").style.display = "flex"
+document.getElementById("login")
+.style.display = "none"
+
+document.getElementById("juego")
+.style.display = "flex"
 
 socket.emit("joinRoom",{
 room,
@@ -450,7 +478,9 @@ socket.on("playerData",(data)=>{
 
 miSimbolo = data.simbolo
 
-mostrarAviso("Sos jugador " + miSimbolo)
+mostrarAviso(
+"Sos jugador " + miSimbolo
+)
 
 })
 
@@ -462,31 +492,38 @@ mostrarAviso("Sala llena")
 
 socket.on("statusUpdate",(estado)=>{
 
-document.getElementById("estado").innerHTML = estado
+document.getElementById("estado")
+.innerHTML = estado
 
 })
 
 socket.on("playersUpdate",(jugadores)=>{
 
-document.getElementById("nombreX").innerHTML = "Esperando"
-document.getElementById("nombreO").innerHTML = "Esperando"
+document.getElementById("nombreX")
+.innerHTML = "Esperando"
 
-document.getElementById("fotoX").src = "perfil1.jpg"
-document.getElementById("fotoO").src = "perfil2.jpg"
+document.getElementById("nombreO")
+.innerHTML = "Esperando"
 
 jugadores.forEach(j=>{
 
 if(j.simbolo == "X"){
 
-document.getElementById("nombreX").innerHTML = j.nombre
-document.getElementById("fotoX").src = j.foto
+document.getElementById("nombreX")
+.innerHTML = j.nombre
+
+document.getElementById("fotoX")
+.src = j.foto
 
 }
 
 if(j.simbolo == "O"){
 
-document.getElementById("nombreO").innerHTML = j.nombre
-document.getElementById("fotoO").src = j.foto
+document.getElementById("nombreO")
+.innerHTML = j.nombre
+
+document.getElementById("fotoO")
+.src = j.foto
 
 }
 
@@ -498,21 +535,40 @@ socket.on("turnUpdate",(turno)=>{
 
 turnoActual = turno
 
-document.getElementById("cardX").classList.remove("activo")
-document.getElementById("cardO").classList.remove("activo")
+document.getElementById("cardX")
+.classList.remove("activo")
+
+document.getElementById("cardO")
+.classList.remove("activo")
 
 if(turno == "X"){
-document.getElementById("cardX").classList.add("activo")
+
+document.getElementById("cardX")
+.classList.add("activo")
+
 }else{
-document.getElementById("cardO").classList.add("activo")
+
+document.getElementById("cardO")
+.classList.add("activo")
+
 }
 
 if(miSimbolo == turno){
-document.getElementById("estado").innerHTML = "Tu turno"
-document.getElementById("tablero").classList.remove("bloqueado")
+
+document.getElementById("estado")
+.innerHTML = "Tu turno"
+
+document.getElementById("tablero")
+.classList.remove("bloqueado")
+
 }else{
-document.getElementById("estado").innerHTML = "Turno rival"
-document.getElementById("tablero").classList.add("bloqueado")
+
+document.getElementById("estado")
+.innerHTML = "Turno rival"
+
+document.getElementById("tablero")
+.classList.add("bloqueado")
+
 }
 
 })
@@ -521,7 +577,8 @@ casillas.forEach((casilla,index)=>{
 
 casilla.onclick = ()=>{
 
-if(miSimbolo != turnoActual) return
+if(miSimbolo != turnoActual)
+return
 
 socket.emit("move",{
 room,
@@ -536,15 +593,15 @@ socket.on("boardUpdate",(tablero)=>{
 
 casillas.forEach((c,i)=>{
 
-c.classList.remove("ganadora")
-
 if(tablero[i] == "X"){
 
-c.innerHTML = '<img src="x.jpg">'
+c.innerHTML =
+'<img src="x.jpg">'
 
 }else if(tablero[i] == "O"){
 
-c.innerHTML = '<img src="o.jpg">'
+c.innerHTML =
+'<img src="o.jpg">'
 
 }else{
 
@@ -558,17 +615,24 @@ c.innerHTML = ""
 
 socket.on("scoreUpdate",(data)=>{
 
-document.getElementById("scoreX").innerHTML = data.scoreX
-document.getElementById("scoreO").innerHTML = data.scoreO
+document.getElementById("scoreX")
+.innerHTML = data.scoreX
+
+document.getElementById("scoreO")
+.innerHTML = data.scoreO
 
 })
 
 socket.on("winner",(ganador)=>{
 
 if(ganador == miSimbolo){
+
 mostrarAviso("Ganaste")
+
 }else{
+
 mostrarAviso("Perdiste")
+
 }
 
 })
@@ -608,17 +672,34 @@ const mensajes =
 document.getElementById("mensajes")
 
 mensajes.innerHTML +=
-"<div><b>"+data.nombre+":</b> "+data.mensaje+"</div>"
+"<div><b>"+data.nombre+
+":</b> "+data.mensaje+
+"</div>"
 
-mensajes.scrollTop = mensajes.scrollHeight
+mensajes.scrollTop =
+mensajes.scrollHeight
 
 })
 
-function copiarLink(){
+function invitar(){
 
-navigator.clipboard.writeText(window.location.href)
+const link = window.location.href
+
+if(navigator.share){
+
+navigator.share({
+title:"TaTeTi Online",
+text:"Jugá conmigo al TaTeTi",
+url:link
+})
+
+}else{
+
+navigator.clipboard.writeText(link)
 
 mostrarAviso("Link copiado")
+
+}
 
 }
 
@@ -632,6 +713,7 @@ function salir(){
 
 localStorage.removeItem("nombre")
 localStorage.removeItem("foto")
+
 location.reload()
 
 }
@@ -642,6 +724,7 @@ const aviso =
 document.getElementById("aviso")
 
 aviso.innerHTML = texto
+
 aviso.style.display = "block"
 
 setTimeout(()=>{
