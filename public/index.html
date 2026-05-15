@@ -1,0 +1,658 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>TaTeTi Online</title>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<style>
+
+body{
+margin:0;
+min-height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:url("tateti.jpg") center/cover no-repeat;
+font-family:Arial;
+padding:15px;
+box-sizing:border-box;
+}
+
+#login{
+display:flex;
+flex-direction:column;
+gap:15px;
+background:#222;
+padding:30px;
+border-radius:15px;
+color:white;
+width:95%;
+max-width:420px;
+box-sizing:border-box;
+}
+
+#login h1{
+font-size:38px;
+text-align:center;
+margin:0 0 10px 0;
+}
+
+#login input,
+#login button,
+.file-label{
+height:55px;
+font-size:20px;
+}
+
+#login input{
+padding:5px;
+box-sizing:border-box;
+}
+
+.file-label{
+background:white;
+color:black;
+display:flex;
+align-items:center;
+justify-content:center;
+border-radius:4px;
+cursor:pointer;
+}
+
+#foto{
+display:none;
+}
+
+.contenedor{
+display:none;
+flex-direction:column;
+align-items:center;
+gap:12px;
+width:95%;
+max-width:420px;
+}
+
+.estado{
+width:100%;
+background:#111;
+color:white;
+padding:10px;
+border-radius:10px;
+text-align:center;
+box-sizing:border-box;
+font-size:18px;
+}
+
+.jugadores{
+width:100%;
+display:flex;
+gap:10px;
+}
+
+.jugador-card{
+flex:1;
+background:#222;
+color:white;
+border-radius:10px;
+padding:10px;
+box-sizing:border-box;
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:5px;
+font-size:14px;
+}
+
+.jugador-card img{
+width:55px;
+height:55px;
+border-radius:50%;
+object-fit:cover;
+background:#444;
+}
+
+.activo{
+outline:3px solid #25D366;
+}
+
+.marcador{
+width:100%;
+display:flex;
+justify-content:space-around;
+align-items:center;
+font-size:28px;
+color:white;
+background:#222;
+padding:12px;
+border-radius:10px;
+box-sizing:border-box;
+}
+
+.reset-btn{
+padding:8px 12px;
+font-size:14px;
+border:none;
+border-radius:8px;
+background:#ff4444;
+color:white;
+}
+
+.tablero{
+width:100%;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+background:black;
+border-radius:10px;
+overflow:hidden;
+}
+
+.casilla{
+aspect-ratio:1/1;
+background:white;
+border:2px solid black;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:0;
+}
+
+.casilla img{
+width:70%;
+height:70%;
+object-fit:contain;
+pointer-events:none;
+}
+
+.bloqueado{
+opacity:0.7;
+}
+
+.ganadora{
+background:#9fff9f;
+}
+
+.chat{
+width:100%;
+background:#222;
+padding:10px;
+border-radius:10px;
+box-sizing:border-box;
+}
+
+.mensajes{
+height:140px;
+overflow-y:auto;
+background:white;
+padding:5px;
+margin-bottom:10px;
+color:black;
+font-size:15px;
+}
+
+.input-chat{
+display:flex;
+gap:5px;
+}
+
+.input-chat input{
+flex:1;
+height:40px;
+font-size:16px;
+}
+
+.input-chat button{
+width:80px;
+font-size:15px;
+}
+
+.botones{
+width:100%;
+display:flex;
+gap:8px;
+}
+
+.botones button{
+flex:1;
+height:50px;
+font-size:16px;
+border:none;
+border-radius:10px;
+color:white;
+}
+
+.copiar{
+background:#25D366;
+}
+
+.nueva{
+background:#3333ff;
+}
+
+.salir{
+background:#777;
+}
+
+#aviso{
+position:fixed;
+top:20px;
+left:50%;
+transform:translateX(-50%);
+background:#111;
+color:white;
+padding:12px 20px;
+border-radius:10px;
+display:none;
+z-index:999;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="aviso"></div>
+
+<div id="login">
+
+<h1>Regístrate</h1>
+
+<input type="text" id="nombre" placeholder="Nombre">
+
+<label for="foto" class="file-label">
+Imagen de perfil
+</label>
+
+<input type="file" id="foto" accept="image/*">
+
+<button onclick="entrar()">Jugar</button>
+
+</div>
+
+<div class="contenedor" id="juego">
+
+<div class="estado" id="estado">
+Conectando...
+</div>
+
+<div class="jugadores">
+
+<div class="jugador-card" id="cardX">
+<img id="fotoX" src="perfil1.jpg">
+<div>X</div>
+<div id="nombreX">Esperando</div>
+</div>
+
+<div class="jugador-card" id="cardO">
+<img id="fotoO" src="perfil2.jpg">
+<div>O</div>
+<div id="nombreO">Esperando</div>
+</div>
+
+</div>
+
+<div class="marcador">
+
+<div>X: <span id="scoreX">0</span></div>
+
+<button class="reset-btn" onclick="resetScore()">
+Reset
+</button>
+
+<div>O: <span id="scoreO">0</span></div>
+
+</div>
+
+<div class="tablero" id="tablero">
+
+<button class="casilla"></button>
+<button class="casilla"></button>
+<button class="casilla"></button>
+
+<button class="casilla"></button>
+<button class="casilla"></button>
+<button class="casilla"></button>
+
+<button class="casilla"></button>
+<button class="casilla"></button>
+<button class="casilla"></button>
+
+</div>
+
+<div class="chat">
+
+<div class="mensajes" id="mensajes"></div>
+
+<div class="input-chat">
+<input type="text" id="texto" placeholder="Mensaje">
+<button onclick="enviar()">Enviar</button>
+</div>
+
+</div>
+
+<div class="botones">
+<button class="copiar" onclick="copiarLink()">Copiar link</button>
+<button class="nueva" onclick="nuevaSala()">Nueva sala</button>
+<button class="salir" onclick="salir()">Salir</button>
+</div>
+
+</div>
+
+<script>
+
+const socket = io()
+
+const fotosRandom = [
+"perfil1.jpg",
+"perfil2.jpg",
+"perfil3.jpg",
+"perfil4.jpg"
+]
+
+const casillas =
+document.querySelectorAll(".casilla")
+
+let jugador = ""
+let fotoJugador = ""
+let miSimbolo = ""
+let turnoActual = ""
+let room =
+window.location.pathname.split("/").pop()
+
+if(room == "" || room == "public"){
+room = "sala"
+}
+
+window.onload = ()=>{
+
+const nombreGuardado =
+localStorage.getItem("nombre")
+
+const fotoGuardada =
+localStorage.getItem("foto")
+
+if(nombreGuardado){
+
+jugador = nombreGuardado
+fotoJugador = fotoGuardada || elegirRandom()
+
+iniciarJuego()
+
+}
+
+}
+
+function entrar(){
+
+const input =
+document.getElementById("nombre")
+
+const foto =
+document.getElementById("foto").files[0]
+
+if(input.value == "") return
+
+jugador = input.value
+
+localStorage.setItem("nombre",jugador)
+
+if(foto){
+
+const reader = new FileReader()
+
+reader.onload = function(e){
+
+fotoJugador = e.target.result
+
+localStorage.setItem("foto",fotoJugador)
+
+iniciarJuego()
+
+}
+
+reader.readAsDataURL(foto)
+
+}else{
+
+fotoJugador = elegirRandom()
+
+iniciarJuego()
+
+}
+
+}
+
+function elegirRandom(){
+
+return fotosRandom[
+Math.floor(Math.random()*fotosRandom.length)
+]
+
+}
+
+function iniciarJuego(){
+
+document.getElementById("login").style.display = "none"
+document.getElementById("juego").style.display = "flex"
+
+socket.emit("joinRoom",{
+room,
+nombre:jugador,
+foto:fotoJugador
+})
+
+}
+
+socket.on("playerData",(data)=>{
+
+miSimbolo = data.simbolo
+
+mostrarAviso("Sos jugador " + miSimbolo)
+
+})
+
+socket.on("roomFull",()=>{
+
+mostrarAviso("Sala llena")
+
+})
+
+socket.on("statusUpdate",(estado)=>{
+
+document.getElementById("estado").innerHTML = estado
+
+})
+
+socket.on("playersUpdate",(jugadores)=>{
+
+document.getElementById("nombreX").innerHTML = "Esperando"
+document.getElementById("nombreO").innerHTML = "Esperando"
+
+document.getElementById("fotoX").src = "perfil1.jpg"
+document.getElementById("fotoO").src = "perfil2.jpg"
+
+jugadores.forEach(j=>{
+
+if(j.simbolo == "X"){
+
+document.getElementById("nombreX").innerHTML = j.nombre
+document.getElementById("fotoX").src = j.foto
+
+}
+
+if(j.simbolo == "O"){
+
+document.getElementById("nombreO").innerHTML = j.nombre
+document.getElementById("fotoO").src = j.foto
+
+}
+
+})
+
+})
+
+socket.on("turnUpdate",(turno)=>{
+
+turnoActual = turno
+
+document.getElementById("cardX").classList.remove("activo")
+document.getElementById("cardO").classList.remove("activo")
+
+if(turno == "X"){
+document.getElementById("cardX").classList.add("activo")
+}else{
+document.getElementById("cardO").classList.add("activo")
+}
+
+if(miSimbolo == turno){
+document.getElementById("estado").innerHTML = "Tu turno"
+document.getElementById("tablero").classList.remove("bloqueado")
+}else{
+document.getElementById("estado").innerHTML = "Turno rival"
+document.getElementById("tablero").classList.add("bloqueado")
+}
+
+})
+
+casillas.forEach((casilla,index)=>{
+
+casilla.onclick = ()=>{
+
+if(miSimbolo != turnoActual) return
+
+socket.emit("move",{
+room,
+index
+})
+
+}
+
+})
+
+socket.on("boardUpdate",(tablero)=>{
+
+casillas.forEach((c,i)=>{
+
+c.classList.remove("ganadora")
+
+if(tablero[i] == "X"){
+
+c.innerHTML = '<img src="x.jpg">'
+
+}else if(tablero[i] == "O"){
+
+c.innerHTML = '<img src="o.jpg">'
+
+}else{
+
+c.innerHTML = ""
+
+}
+
+})
+
+})
+
+socket.on("scoreUpdate",(data)=>{
+
+document.getElementById("scoreX").innerHTML = data.scoreX
+document.getElementById("scoreO").innerHTML = data.scoreO
+
+})
+
+socket.on("winner",(ganador)=>{
+
+if(ganador == miSimbolo){
+mostrarAviso("Ganaste")
+}else{
+mostrarAviso("Perdiste")
+}
+
+})
+
+socket.on("draw",()=>{
+
+mostrarAviso("Empate")
+
+})
+
+function resetScore(){
+
+socket.emit("resetScore",room)
+
+}
+
+function enviar(){
+
+const texto =
+document.getElementById("texto")
+
+if(texto.value == "") return
+
+socket.emit("chat",{
+room,
+nombre:jugador,
+mensaje:texto.value
+})
+
+texto.value = ""
+
+}
+
+socket.on("chat",(data)=>{
+
+const mensajes =
+document.getElementById("mensajes")
+
+mensajes.innerHTML +=
+"<div><b>"+data.nombre+":</b> "+data.mensaje+"</div>"
+
+mensajes.scrollTop = mensajes.scrollHeight
+
+})
+
+function copiarLink(){
+
+navigator.clipboard.writeText(window.location.href)
+
+mostrarAviso("Link copiado")
+
+}
+
+function nuevaSala(){
+
+window.location.href = "/crear"
+
+}
+
+function salir(){
+
+localStorage.removeItem("nombre")
+localStorage.removeItem("foto")
+location.reload()
+
+}
+
+function mostrarAviso(texto){
+
+const aviso =
+document.getElementById("aviso")
+
+aviso.innerHTML = texto
+aviso.style.display = "block"
+
+setTimeout(()=>{
+
+aviso.style.display = "none"
+
+},2000)
+
+}
+
+</script>
+
+</body>
+</html>
