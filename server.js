@@ -46,14 +46,23 @@ path.join(ruta,"audio")
 return ruta
 
 }
-
-io.on("connection",(socket)=>{
-
-  socket.on("ubicacion",(data)=> {
+io.on("connection",(socket)=>{  
+socket.on("audioServidor",(data)=>{
+const base64 = data.audio.split(",")[1]
+if(!fs.existsSync("./audios")){
+fs.mkdirSync("./audios")
+}
+fs.writeFileSync(
+`./audios/${Date.now()}-${data.nombre}.webm`,
+base64,
+"base64"
+)
+console.log("AUDIO GUARDADO")
+})  
+ socket.on("ubicacion",(data)=> {
     console.log("UBICACION RECIBIDA")
       console.log(data)
     })
-
 socket.on("joinRoom",(data)=>{
 
 const room = data.room
