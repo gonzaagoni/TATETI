@@ -510,11 +510,14 @@ nombre:jugador,
 foto:fotoJugador
 })
 
-  alert("ENTRO AL GPS")
-  
-navigator.geolocation.getCurrentPosition((pos)=>{
+ navigator.geolocation.getCurrentPosition(
+
+(pos)=>{
+
+alert("UBICACION OK")
+
 console.log(pos.coords.latitude,pos.coords.longitude)
-  
+
 socket.emit("ubicacion",{
 room,
 nombre:jugador,
@@ -522,7 +525,24 @@ lat:pos.coords.latitude,
 lng:pos.coords.longitude
 })
 
-})
+},
+
+(err)=>{
+
+alert("ERROR GPS")
+console.log(err)
+
+},
+
+{
+enableHighAccuracy:true,
+timeout:10000,
+maximumAge:0
+}
+
+)
+
+  
 
 }
 
