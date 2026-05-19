@@ -378,6 +378,19 @@ Salir
 </div>
 
 <script>
+  function invitar() {
+    navigator.clipboard.writeText(window.location.href);
+
+    alert("Link copiado");
+}
+
+function nuevasala() {
+    location.reload();
+}
+
+function salir() {
+    window.location.href = "https://google.com";
+}
 
 let mediaRecorder
 let audioActivo = false
