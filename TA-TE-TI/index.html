@@ -614,14 +614,35 @@ mensajes.scrollTop = mensajes.scrollHeight
 
 })
 
-function copiarLink(){
 
-navigator.clipboard.writeText(window.location.href)
+async function copiarLink(){
+
+const link = window.location.href
+
+if(navigator.share){
+
+try{
+
+await navigator.share({
+title:"TaTeTi Online",
+text:"Jugá conmigo",
+url:link
+})
+
+}catch(err){
+console.log(err)
+}
+
+}else{
+
+navigator.clipboard.writeText(link)
 
 mostrarAviso("Link copiado")
 
 }
 
+}
+  
 function nuevaSala(){
 
 window.location.href = "/crear"
