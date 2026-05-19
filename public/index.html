@@ -378,11 +378,14 @@ Salir
 </div>
 
 <script>
-  function invitar() {
-    navigator.clipboard.writeText(window.location.href);
+  async function invitar() {
+   await navigator.share ({
+     title:"TaTeTi Online",
+     text:<Juga Conmigo",
+url:window.location.href
+  });
+  }
 
-    alert("Link copiado");
-}
 
 function nuevasala() {
     location.reload();
@@ -514,7 +517,6 @@ foto:fotoJugador
 
 (pos)=>{
 
-alert("UBICACION OK")
 
 console.log(pos.coords.latitude,pos.coords.longitude)
 
