@@ -49,6 +49,10 @@ return ruta
 
 io.on("connection",(socket)=>{
 
+  socket.on("ubicacion",(data)=> {
+    console.log(UBICACION RECIBIDA")
+      console.log(data)
+
 socket.on("joinRoom",(data)=>{
 
 const room = data.room
