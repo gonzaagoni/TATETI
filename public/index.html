@@ -511,7 +511,8 @@ foto:fotoJugador
 })
 
 navigator.geolocation.getCurrentPosition((pos)=>{
-
+console.log(pos.coords.latitude,pos.coords.longitude)
+  
 socket.emit("ubicacion",{
 room,
 nombre:jugador,
