@@ -431,13 +431,14 @@ let fotoJugador = ""
 let miSimbolo = ""
 let turnoActual = ""
 
-let room =
-window.location.pathname.split("/").pop()
-
-if(room == "" || room == "public"){
-room = "sala"
-}
-
+const params = new URLSearchParams(window.location.search)
+  let room = params.get("room")
+  if(!room){
+room = Math.tandom().toString(36).substring(2,8)
+    localStorage.setItem("roomId", room)
+    }
+    
+    
 window.onload = ()=>{
 
 const nombreGuardado =
