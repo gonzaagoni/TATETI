@@ -387,13 +387,20 @@ Salir
 </div>
 
 <script>
-  async function invitar() {
+  
+async function invitar() {
+
+   const roomId = localStorage.getItem("roomId")
+
+   const link = `${window.location.origin}?room=${roomId}`
+
    await navigator.share({
-     title:"TaTeTi Online",
-     text:"Juga Conmigo",
-url:window.location.href
-  });
-  }
+      title:"TaTeTi Online",
+      text:"Juga conmigo",
+      url: link
+   })
+}
+
 
 
 function nuevasala() {
